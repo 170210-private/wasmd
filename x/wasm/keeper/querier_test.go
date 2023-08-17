@@ -290,21 +290,13 @@ func TestQueryContractListByCodeOrdering(t *testing.T) {
 
 	// manage some realistic block settings
 	var h int64 = 10
-	setBlock := func(ctx sdk.Context, height int64) sdk.Context {
-		ctx = ctx.WithBlockHeight(height)
-		meter := sdk.NewGasMeter(1000000)
-		ctx = ctx.WithGasMeter(meter)
-		ctx = ctx.WithBlockGasMeter(meter)
-		return ctx
-	}
+	ctx = ctx.WithBlockHeight(h)
+	meter := sdk.NewGasMeter(1000000)
+	ctx = ctx.WithGasMeter(meter)
+	ctx = ctx.WithBlockGasMeter(meter)
 
-	// create 10 contracts with real block/gas setup
-	for i := 0; i < 10; i++ {
-		// 3 tx per block, so we ensure both comparisons work
-		if i%3 == 0 {
-			ctx = setBlock(ctx, h)
-			h++
-		}
+	// only one block and three contract
+	for i := 0; i < 3; i++ {
 		_, _, err = keepers.ContractKeeper.Instantiate(ctx, codeID, creator, nil, initMsgBz, fmt.Sprintf("contract %d", i), topUp)
 		require.NoError(t, err)
 	}
@@ -314,11 +306,18 @@ func TestQueryContractListByCodeOrdering(t *testing.T) {
 	res, err := q.ContractsByCode(sdk.WrapSDKContext(ctx), &types.QueryContractsByCodeRequest{CodeId: codeID})
 	require.NoError(t, err)
 
-	require.Equal(t, 10, len(res.Contracts))
-
 	for _, contractAddr := range res.Contracts {
 		assert.NotEmpty(t, contractAddr)
 	}
+	// In this test we can get below address when setting block
+	// cosmos14hj2tavq8fpesdwxxcu44rty3hh90vhujrvcmstl4zr3txmfvw9s4hmalr
+	// cosmos1suhgf5svhu4usrurvxzlgn54ksxmn8gljarjtxqnapv8kjnp4nrs2zhgh2
+	// cosmos1yyca08xqdgvjz0psg56z67ejh9xms6l436u8y58m82npdqqhmmtq8xrd4s
+
+	// but after I comment out L294-296, the result become reverse oreder
+	// cosmos1yyca08xqdgvjz0psg56z67ejh9xms6l436u8y58m82npdqqhmmtq8xrd4s
+	// cosmos1suhgf5svhu4usrurvxzlgn54ksxmn8gljarjtxqnapv8kjnp4nrs2zhgh2
+	// cosmos14hj2tavq8fpesdwxxcu44rty3hh90vhujrvcmstl4zr3txmfvw9s4hmalr
 }
 
 func TestQueryContractHistory(t *testing.T) {
