@@ -296,28 +296,33 @@ func TestQueryContractListByCodeOrdering(t *testing.T) {
 	ctx = ctx.WithBlockGasMeter(meter)
 
 	// only one block and three contract
-	for i := 0; i < 3; i++ {
-		_, _, err = keepers.ContractKeeper.Instantiate(ctx, codeID, creator, nil, initMsgBz, fmt.Sprintf("contract %d", i), topUp)
+	for i := 0; i < 5; i++ {
+		aaa, _, err := keepers.ContractKeeper.Instantiate(ctx, codeID, creator, nil, initMsgBz, fmt.Sprintf("contract %d", i), topUp)
 		require.NoError(t, err)
+		fmt.Println(aaa.String())
 	}
 
 	// query and check the results are properly sorted
 	q := Querier(keeper)
 	res, err := q.ContractsByCode(sdk.WrapSDKContext(ctx), &types.QueryContractsByCodeRequest{CodeId: codeID})
 	require.NoError(t, err)
+	fmt.Println("")
 
 	for _, contractAddr := range res.Contracts {
+		fmt.Println(contractAddr)
 		assert.NotEmpty(t, contractAddr)
 	}
-	// In this test we can get below address when setting block
 	// cosmos14hj2tavq8fpesdwxxcu44rty3hh90vhujrvcmstl4zr3txmfvw9s4hmalr
 	// cosmos1suhgf5svhu4usrurvxzlgn54ksxmn8gljarjtxqnapv8kjnp4nrs2zhgh2
 	// cosmos1yyca08xqdgvjz0psg56z67ejh9xms6l436u8y58m82npdqqhmmtq8xrd4s
+	// cosmos1yw4xvtc43me9scqfr2jr2gzvcxd3a9y4eq7gaukreugw2yd2f8tsx8qthr
+	// cosmos1cnuw3f076wgdyahssdkd0g3nr96ckq8cwa2mh029fn5mgf2fmcmslt2693
 
-	// but after I comment out L294-296, the result become reverse oreder
-	// cosmos1yyca08xqdgvjz0psg56z67ejh9xms6l436u8y58m82npdqqhmmtq8xrd4s
-	// cosmos1suhgf5svhu4usrurvxzlgn54ksxmn8gljarjtxqnapv8kjnp4nrs2zhgh2
 	// cosmos14hj2tavq8fpesdwxxcu44rty3hh90vhujrvcmstl4zr3txmfvw9s4hmalr
+	// cosmos1suhgf5svhu4usrurvxzlgn54ksxmn8gljarjtxqnapv8kjnp4nrs2zhgh2
+	// cosmos1yyca08xqdgvjz0psg56z67ejh9xms6l436u8y58m82npdqqhmmtq8xrd4s
+	// cosmos1yw4xvtc43me9scqfr2jr2gzvcxd3a9y4eq7gaukreugw2yd2f8tsx8qthr
+	// cosmos1cnuw3f076wgdyahssdkd0g3nr96ckq8cwa2mh029fn5mgf2fmcmslt2693
 }
 
 func TestQueryContractHistory(t *testing.T) {
